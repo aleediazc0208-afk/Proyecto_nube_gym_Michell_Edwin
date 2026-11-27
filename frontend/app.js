@@ -1,10 +1,16 @@
+// Local: http://127.0.0.1:8000/membresias
+// Producción: cambiar por tu URL de Render + /membresias
 const API = "http://127.0.0.1:8000/membresias";
 
 const contenedor = document.getElementById("contenedor");
 const contador = document.getElementById("contador");
 const tituloVista = document.getElementById("tituloVista");
 const buscador = document.getElementById("buscador");
-const modal = document.getElementById("modal");
+const modal = document.getElementById("seccion-formulario");
+const camposForm = document.getElementById("camposForm");
+const formSocio = document.getElementById("formSocio");
+const inputImg = document.getElementById("imagen-url");
+const preview = document.getElementById("preview");
 const menu = document.getElementById("menu");
 
 let socios = [];
@@ -17,15 +23,22 @@ const titulos = {
   vencidas: "Membresías vencidas",
 };
 
+const SIN_IMAGEN =
+  "data:image/svg+xml;utf8," +
+  encodeURIComponent(
+    '<svg xmlns="http://www.w3.org/2000/svg" width="300" height="180"><rect width="100%" height="100%" fill="#2a2a33"/><text x="50%" y="50%" fill="#aaa" font-family="Arial" font-size="18" text-anchor="middle" dominant-baseline="middle">Sin Imagen</text></svg>'
+  );
+
 const moneda = (n) => "$" + Number(n).toLocaleString("es-CO");
 
 const escapar = (t) =>
-  String(t).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  String(t ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 
-
+/* ---------- Cargar datos ---------- */
 async function cargar() {
   try {
     const res = await fetch(API);
+    if (!res.ok) throw new Error("Error " + res.status);
     socios = await res.json();
     render();
   } catch (e) {
@@ -44,6 +57,7 @@ function actualizarStats() {
   document.getElementById("statIngresos").textContent = moneda(ingresos);
 }
 
+/* ---------- Render + filtros ---------- */
 function render() {
   actualizarStats();
   tituloVista.textContent = titulos[filtro];
@@ -65,6 +79,8 @@ function render() {
       const clasePlan = s.plan.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
       return `
       <article class="card">
+        <img class="card-img" src="${escapar(s.imagen_url)}" alt="${escapar(s.cliente)}"
+             onerror="this.onerror=null;this.src='${SIN_IMAGEN}'">
         <div class="card-top">
           <div class="avatar">${escapar(s.cliente.charAt(0).toUpperCase())}</div>
           <div>
@@ -92,26 +108,31 @@ function render() {
     .join("");
 }
 
-
-document.getElementById("formSocio").addEventListener("submit", async (e) => {
+/* ---------- Guardar (POST) ---------- */
+formSocio.addEventListener("submit", async (e) => {
   e.preventDefault();
   const nuevo = {
     cliente: document.getElementById("cliente").value.trim(),
     plan: document.getElementById("plan").value,
     valor_mensual: parseFloat(document.getElementById("valor").value),
-    activa: true,
+    activa: document.getElementById("estado").value === "true",
+    imagen_url: inputImg.value.trim(),
   };
-  await fetch(API, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(nuevo),
-  });
-  e.target.reset();
-  cerrarModal();
-  cargar();
+  try {
+    const res = await fetch(API, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(nuevo),
+    });
+    if (!res.ok) throw new Error("Error " + res.status);
+    cerrarModal();
+    cargar();
+  } catch (err) {
+    alert("No se pudo guardar el socio. Revisa los datos e intenta de nuevo.");
+  }
 });
 
-
+/* ---------- Cambiar estado (PUT) ---------- */
 async function cambiarEstado(id, estado) {
   await fetch(`${API}/${id}`, {
     method: "PUT",
@@ -121,14 +142,14 @@ async function cambiarEstado(id, estado) {
   cargar();
 }
 
-
+/* ---------- Eliminar (DELETE) ---------- */
 async function eliminar(id) {
   if (!confirm("¿Eliminar este socio?")) return;
   await fetch(`${API}/${id}`, { method: "DELETE" });
   cargar();
 }
 
-
+/* ---------- Filtros del navbar ---------- */
 document.querySelectorAll("[data-filtro]").forEach((a) => {
   a.addEventListener("click", (e) => {
     e.preventDefault();
@@ -136,34 +157,60 @@ document.querySelectorAll("[data-filtro]").forEach((a) => {
     document.querySelectorAll(".menu [data-filtro]").forEach((x) => x.classList.remove("activo"));
     document.querySelector(`.menu [data-filtro="${filtro}"]`).classList.add("activo");
     menu.classList.remove("abierto");
+    cerrarModal();
     render();
   });
 });
-
 
 buscador.addEventListener("input", () => {
   busqueda = buscador.value.trim().toLowerCase();
   render();
 });
 
-
+/* ---------- Control de vistas del formulario ---------- */
 function abrirModal() {
+  camposForm.disabled = false;
   modal.classList.add("abierto");
+  modal.setAttribute("aria-hidden", "false");
   menu.classList.remove("abierto");
   document.getElementById("cliente").focus();
 }
+
 function cerrarModal() {
+  formSocio.reset();
+  preview.hidden = true;
+  preview.removeAttribute("src");
+  camposForm.disabled = true;
   modal.classList.remove("abierto");
+  modal.setAttribute("aria-hidden", "true");
 }
+
 document.getElementById("btnAfiliar").addEventListener("click", (e) => {
   e.preventDefault();
   abrirModal();
 });
 document.getElementById("cerrarModal").addEventListener("click", cerrarModal);
+document.getElementById("btnCancelar").addEventListener("click", cerrarModal);
 modal.addEventListener("click", (e) => { if (e.target === modal) cerrarModal(); });
 document.addEventListener("keydown", (e) => { if (e.key === "Escape") cerrarModal(); });
 
+/* ---------- Vista previa de imagen ---------- */
+inputImg.addEventListener("input", () => {
+  const url = inputImg.value.trim();
+  if (url) {
+    preview.src = url;
+    preview.hidden = false;
+  } else {
+    preview.hidden = true;
+  }
+});
+preview.addEventListener("error", () => { preview.hidden = true; });
 
+/* ---------- Menú móvil ---------- */
 document.getElementById("burger").addEventListener("click", () => menu.classList.toggle("abierto"));
 
-cargar();
+/* ---------- Inicio ---------- */
+document.addEventListener("DOMContentLoaded", () => {
+  cerrarModal();
+  cargar();
+});
