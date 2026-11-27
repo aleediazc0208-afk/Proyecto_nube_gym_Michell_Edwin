@@ -15,7 +15,7 @@
   <header class="navbar">
     <div class="nav-inner">
       <a href="#" class="logo" data-filtro="todos">
-        <i class="fa-solid fa-dumbbell"></i>
+        <img src="logo.png" alt="Logo Iron Fitness" class="logo-img">
         <span>IRON<b>FITNESS</b></span>
       </a>
       <button class="burger" id="burger" aria-label="Abrir menú"><i class="fa-solid fa-bars"></i></button>
@@ -44,7 +44,6 @@
     </div>
   </section>
 
-
   <main class="contenido">
     <div class="barra">
       <h2 id="tituloVista">Todos los socios</h2>
@@ -53,39 +52,51 @@
     <section class="grid" id="contenedor"></section>
   </main>
 
-  <div class="modal" id="modal" aria-hidden="true">
+  <div class="modal" id="seccion-formulario" aria-hidden="true">
     <div class="modal-caja" role="dialog" aria-labelledby="modalTitulo">
       <button class="cerrar" id="cerrarModal" aria-label="Cerrar"><i class="fa-solid fa-xmark"></i></button>
       <h3 id="modalTitulo"><i class="fa-solid fa-user-plus"></i> Afiliar socio</h3>
       <form id="formSocio">
-        <label for="cliente">Nombre del cliente</label>
-        <input type="text" id="cliente" placeholder="Ej: Carlos Ramírez" required>
+        <fieldset id="camposForm" disabled>
+          <label for="cliente">Nombre del cliente</label>
+          <input type="text" id="cliente" placeholder="Ej: Carlos Ramírez" required minlength="2">
 
-        <label for="plan">Plan</label>
-        <select id="plan" required>
-          <option value="Básico">Básico</option>
-          <option value="Premium">Premium</option>
-          <option value="VIP">VIP</option>
-        </select>
+          <label for="plan">Plan</label>
+          <select id="plan" required>
+            <option value="Básico">Básico</option>
+            <option value="Premium">Premium</option>
+            <option value="VIP">VIP</option>
+          </select>
 
-        <label for="valor">Valor mensual (COP)</label>
-        <input type="number" id="valor" min="0" step="1000" placeholder="Ej: 80000" required>
+          <label for="valor">Valor mensual (COP)</label>
+          <input type="number" id="valor" min="1" step="1000" placeholder="Ej: 80000" required>
 
-        <button type="submit" class="btn-guardar"><i class="fa-solid fa-floppy-disk"></i> Guardar socio</button>
+          <label for="estado">Estado de la membresía</label>
+          <select id="estado" required>
+            <option value="true">Activa</option>
+            <option value="false">Vencida</option>
+          </select>
+
+          <label for="imagen-url">URL de la imagen</label>
+          <input type="url" id="imagen-url" placeholder="https://ejemplo.com/imagen.jpg" required>
+          <img id="preview" class="preview" alt="Vista previa" hidden>
+
+          <button type="submit" class="btn-guardar"><i class="fa-solid fa-floppy-disk"></i> Guardar socio</button>
+          <button type="button" id="btnCancelar" class="btn-cancelar">Cancelar / Volver al Catálogo</button>
+        </fieldset>
       </form>
     </div>
   </div>
 
-
   <footer class="footer">
     <div class="footer-inner">
       <div>
-        <div class="logo"><i class="fa-solid fa-dumbbell"></i> <span>IRON<b>FITNESS</b></span></div>
+        <div class="logo"><img src="logo.png" alt="Logo" class="logo-img"> <span>IRON<b>FITNESS</b></span></div>
         <p>Entrena fuerte. Gestiona fácil.</p>
       </div>
       <div>
         <h4>Proyecto</h4>
-        <p>Taller Práctico 7 · Caso 5</p>
+        <p>Actividad 8-1 · Caso 5</p>
         <p>ADSO · Ficha 3409609</p>
       </div>
       <div>
@@ -101,4 +112,3 @@
 
   <script src="app.js"></script>
 </body>
-</html>
