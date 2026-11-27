@@ -1,6 +1,6 @@
 // Local: http://127.0.0.1:8000/membresias
-// Producción: cambiar por tu URL de Render + /membresias
-const API = "https://ironfitness-michell-edwin.onrender.com/membresias";
+// Producción: URL de Render
+const API = "https://ironfitness-michell-edwin-p0xm.onrender.com/membresias";
 
 const contenedor = document.getElementById("contenedor");
 const contador = document.getElementById("contador");
@@ -42,8 +42,9 @@ async function cargar() {
     socios = await res.json();
     render();
   } catch (e) {
+    console.error(e);
     contenedor.innerHTML = `<div class="vacio"><i class="fa-solid fa-triangle-exclamation"></i>
-      <p>No se pudo conectar con la API. Verifica que uvicorn esté corriendo.</p></div>`;
+      <p>No se pudo conectar con la API. Espera un momento y recarga la página.</p></div>`;
   }
 }
 
@@ -80,7 +81,7 @@ function render() {
       return `
       <article class="card">
         <img class="card-img" src="${escapar(s.imagen_url)}" alt="${escapar(s.cliente)}"
-             onerror="this.onerror=null;this.src='${SIN_IMAGEN}'">
+             onerror="this.onerror=null;this.src=SIN_IMAGEN">
         <div class="card-top">
           <div class="avatar">${escapar(s.cliente.charAt(0).toUpperCase())}</div>
           <div>
@@ -90,7 +91,7 @@ function render() {
         </div>
         <div class="card-body">
           <div class="fila">
-            <span class="plan ${clasePlan}">Plan ${escapar(s.plan)}</span>
+            <span class="plan ${escapar(clasePlan)}">Plan ${escapar(s.plan)}</span>
             <span class="etiqueta ${claseEstado}">${s.activa ? "Activa" : "Vencida"}</span>
           </div>
           <div class="precio">${moneda(s.valor_mensual)} <small>/ mes</small></div>
@@ -128,25 +129,38 @@ formSocio.addEventListener("submit", async (e) => {
     cerrarModal();
     cargar();
   } catch (err) {
+    console.error(err);
     alert("No se pudo guardar el socio. Revisa los datos e intenta de nuevo.");
   }
 });
 
 /* ---------- Cambiar estado (PUT) ---------- */
 async function cambiarEstado(id, estado) {
-  await fetch(`${API}/${id}`, {
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ activa: estado }),
-  });
-  cargar();
+  try {
+    const res = await fetch(`${API}/${id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ activa: estado }),
+    });
+    if (!res.ok) throw new Error("Error " + res.status);
+    cargar();
+  } catch (err) {
+    console.error(err);
+    alert("No se pudo cambiar el estado.");
+  }
 }
 
 /* ---------- Eliminar (DELETE) ---------- */
 async function eliminar(id) {
   if (!confirm("¿Eliminar este socio?")) return;
-  await fetch(`${API}/${id}`, { method: "DELETE" });
-  cargar();
+  try {
+    const res = await fetch(`${API}/${id}`, { method: "DELETE" });
+    if (!res.ok) throw new Error("Error " + res.status);
+    cargar();
+  } catch (err) {
+    console.error(err);
+    alert("No se pudo eliminar el socio.");
+  }
 }
 
 /* ---------- Filtros del navbar ---------- */
