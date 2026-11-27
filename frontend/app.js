@@ -1,6 +1,6 @@
 // Local: http://127.0.0.1:8000/membresias
 // Producción: cambiar por tu URL de Render + /membresias
-const API = "http://127.0.0.1:8000/membresias";
+const API = "https://ironfitness-michell-edwin.onrender.com/membresias";
 
 const contenedor = document.getElementById("contenedor");
 const contador = document.getElementById("contador");
